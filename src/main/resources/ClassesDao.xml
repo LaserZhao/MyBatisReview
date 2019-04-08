@@ -2,7 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.hust.mapper.ClassesDao">
+<mapper namespace="com.hust.mapper.MapperDao">
+
+    <!--
+        evictioon:缓存回收策略
+                LRU：最近最少使用，移除最长时间不被使用的对象
+                FIFO：先进先出，按对象进入缓存的顺序许来移除他们
+                SOFT：软引用，移除基于垃圾回收状态和引用规则的对象
+                WEAK：弱引用，更积极移除基于垃圾收集器状态和弱引用规则的对象
+                默认是LRU
+        flushInterval:缓存间隔
+                缓存多长时间清空一次，默认不清空，设置一个毫秒值
+        readOnly:只读，
+                true：MyBatis认为所有从缓存中获取数据的操作都是只读操作，不会修改数据
+                FALSE：非只读，MyBatis觉得获取的数据可能会被修改
+        size:缓存的大小
+    -->
+    <cache eviction="LRU" flushInterval="60000" readOnly="false" size="1024" />
+
+    <!--  第三方缓存
+           1. 导入第三方缓存jar
+           2. 导入与第三方缓存适配的包
+           3. 在mapper.xml中使用第三方缓存
+    -->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache" >
+        <!-- 同ehcache参数maxElementsInMemory -->
+        <property name="maxEntriesLocalHeap" value="1000"/>
+        <!-- 同ehcache参数maxElementsOnDisk -->
+        <property name="maxEntriesLocalDisk" value="1000"/>
+        <property name="timeToIdleSeconds" value="120"/>
+        <property name="timeToLiveSeconds" value="120"/>
+        <property name="memoryStoreEvictionPolicy" value="LRU"/>
+    </cache>
     <sql id="allColum">
         id,
         name,
@@ -12,21 +43,27 @@
         student
     </sql>
 
-
-    <select id="queryByFileds" resultType="com.hust.bean.Classes">
+    <select id="queryByFiled" resultType="com.hust.bean.Student">
         SELECT <include refid="allColum"/>
         FROM <include refid="tableName"/>
-        WHERE name LIKE CONCAT('%', #{param1},'%')
-        AND description LIKE CONCAT('%',#{param2},'%')
+        WHERE ${param1} LIKE CONCAT('%',#{param2},'%');
+    </select>
+
+    <select id="queryByFileds" resultType="com.hust.bean.Student">
+        SELECT <include refid="allColum"/>
+        FROM <include refid="tableName"/>
+        WHERE ${param1} LIKE CONCAT('%',#{param2},'%');
     </select>
 
 
-    <select id="queryByFileds" resultType="com.hust.bean.Student">
+    <select id="queryByFiledsAndPage" resultType="com.hust.bean.Student">
         SELECT <include refid="allColum"/>
         FROM   <include refid="tableName"/>
         WHERE description LIKE CONCAT('%', #{stu.description},'%')
               LIMIT #{pageInfo.currentPage}, #{pageInfo.pageSize}
     </select>
+
+
 
 
 </mapper>
